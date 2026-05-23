@@ -132,7 +132,8 @@ function updateStatusIndicators() {
 }
 
 // ── PILL / CHECKBOX HELPERS ───────────────────────────
-function togglePill(el) {
+function togglePill(el, ev) {
+  if (ev && ev.target && ev.target.tagName === 'INPUT') return;
   el.classList.toggle('active');
 }
 function getActivePills(groupId) {
@@ -438,9 +439,9 @@ async function generateImages() {
   document.getElementById('generateBtn').disabled = false;
 }
 
-// Gemini Imagen 3
+// Gemini Imagen 4
 async function generateGemini(prompt, count, sizeKey) {
-  document.getElementById('genLoadingText').textContent = 'Gemini Imagen 3 生圖中…';
+  document.getElementById('genLoadingText').textContent = 'Gemini Imagen 4 生圖中…';
 
   const aspectMap = {
     square_1_1:    '1:1',

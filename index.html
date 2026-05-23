@@ -652,18 +652,18 @@ textarea{resize:vertical;min-height:110px;line-height:1.7;}
       <div class="form-field">
         <label>選擇風格標籤（可複選）</label>
         <div class="pill-group" id="toneGroup" style="margin-top:8px;">
-          <label class="pill" onclick="togglePill(this)"><input type="checkbox" value="Bold 大膽衝擊"> Bold 大膽</label>
-          <label class="pill" onclick="togglePill(this)"><input type="checkbox" value="Minimalist 極簡"> Minimalist 極簡</label>
-          <label class="pill" onclick="togglePill(this)"><input type="checkbox" value="Energetic 活力"> Energetic 活力</label>
-          <label class="pill" onclick="togglePill(this)"><input type="checkbox" value="Professional 專業"> Professional 專業</label>
-          <label class="pill" onclick="togglePill(this)"><input type="checkbox" value="Luxury 奢華"> Luxury 奢華</label>
-          <label class="pill" onclick="togglePill(this)"><input type="checkbox" value="Playful 趣味"> Playful 趣味</label>
-          <label class="pill" onclick="togglePill(this)"><input type="checkbox" value="Dark 暗黑酷"> Dark 暗黑</label>
-          <label class="pill" onclick="togglePill(this)"><input type="checkbox" value="Clean 清爽"> Clean 清爽</label>
-          <label class="pill" onclick="togglePill(this)"><input type="checkbox" value="Retro 復古"> Retro 復古</label>
-          <label class="pill" onclick="togglePill(this)"><input type="checkbox" value="Futuristic 未來感"> Futuristic 未來</label>
-          <label class="pill" onclick="togglePill(this)"><input type="checkbox" value="Sporty 運動感"> Sporty 運動</label>
-          <label class="pill" onclick="togglePill(this)"><input type="checkbox" value="Warm 溫暖"> Warm 溫暖</label>
+          <label class="pill" onclick="togglePill(this, event)"><input type="checkbox" value="Bold 大膽衝擊"> Bold 大膽</label>
+          <label class="pill" onclick="togglePill(this, event)"><input type="checkbox" value="Minimalist 極簡"> Minimalist 極簡</label>
+          <label class="pill" onclick="togglePill(this, event)"><input type="checkbox" value="Energetic 活力"> Energetic 活力</label>
+          <label class="pill" onclick="togglePill(this, event)"><input type="checkbox" value="Professional 專業"> Professional 專業</label>
+          <label class="pill" onclick="togglePill(this, event)"><input type="checkbox" value="Luxury 奢華"> Luxury 奢華</label>
+          <label class="pill" onclick="togglePill(this, event)"><input type="checkbox" value="Playful 趣味"> Playful 趣味</label>
+          <label class="pill" onclick="togglePill(this, event)"><input type="checkbox" value="Dark 暗黑酷"> Dark 暗黑</label>
+          <label class="pill" onclick="togglePill(this, event)"><input type="checkbox" value="Clean 清爽"> Clean 清爽</label>
+          <label class="pill" onclick="togglePill(this, event)"><input type="checkbox" value="Retro 復古"> Retro 復古</label>
+          <label class="pill" onclick="togglePill(this, event)"><input type="checkbox" value="Futuristic 未來感"> Futuristic 未來</label>
+          <label class="pill" onclick="togglePill(this, event)"><input type="checkbox" value="Sporty 運動感"> Sporty 運動</label>
+          <label class="pill" onclick="togglePill(this, event)"><input type="checkbox" value="Warm 溫暖"> Warm 溫暖</label>
         </div>
       </div>
       <div class="form-field" style="margin-top:20px;">
@@ -969,8 +969,9 @@ textarea{resize:vertical;min-height:110px;line-height:1.7;}
       <div class="api-status" id="geminiStatus">
         <span class="status-missing">⚪ 未設定</span>
       </div>
-      <div style="font-size:.74rem;color:var(--muted);margin-top:6px;line-height:1.6;">
-        用於：風格分析（Gemini Vision）+ Imagen 3 生圖。免費額度每分鐘 15 次。
+      <div style="font-size:.82rem;color:var(--muted);margin-top:8px;line-height:1.7;">
+        用於：風格分析（Gemini 2.5 Flash Vision）+ Imagen 4 生圖。<br>
+        建議啟用 Paid Tier 以解除每分鐘 15 次限制。
       </div>
     </div>
 

@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CA Brand Designer — AI 品牌設計系統</title>
+<style>
+:root {
+  --bg:        #0b0b12;
+  --surface:   #13131d;
+  --surface2:  #1a1a28;
+  --surface3:  #22223a;
+  --border:    rgba(255,255,255,.08);
+  --border2:   rgba(255,255,255,.14);
+  --accent:    #7c5cfc;
+  --accent-g:  linear-gradient(135deg,#7c5cfc,#a78bfa);
+  --teal:      #00d4aa;
+  --orange:    #ff8c42;
+  --red:       #ff5c5c;
+  --text:      #e8e8f4;
+  --muted:     rgba(232,232,244,.42);
+  --canva:     #8B3DFF;
+  --freepik:   #FF5C39;
+  --gemini:    #4285f4;
+  --success:   #22c55e;
+  --r:         12px;
+  --r-sm:      8px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'Segoe UI','Helvetica Neue',Arial,'PingFang TC','Microsoft JhengHei',sans-serif;
+  background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:6px;} ::-webkit-scrollbar-track{background:var(--surface);}
+::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:3px;}
+
+/* ── HEADER ── */
+header{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  background:rgba(11,11,18,.92);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 32px;height:60px;
+}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.05rem;letter-spacing:-.01em;}
+.logo-icon{
+  width:32px;height:32px;border-radius:8px;
+  background:var(--accent-g);
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+}
+.logo span{color:var(--muted);font-weight:400;}
+.header-right{display:flex;align-items:center;gap:12px;}
+.btn-icon{
+  width:36px;height:36px;border-radius:8px;border:1px solid var(--border2);
+  background:var(--surface2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--muted);transition:all .2s;font-size:16px;
+}
+.btn-icon:hover{background:var(--surface3);color:var(--text);border-color:var(--border2);}
+
+/* ── PROGRESS ── */
+.progress-bar{
+  position:fixed;top:60px;left:0;right:0;z-index:199;
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0 32px;display:flex;align-items:center;gap:0;height:52px;
+}
+.step-item{
+  display:flex;align-items:center;gap:10px;padding:0 20px;
+  cursor:pointer;transition:all .2s;position:relative;height:52px;
+  font-size:.82rem;letter-spacing:.04em;color:var(--muted);
+}
+.step-item.active{color:var(--text);}
+.step-item.done{color:var(--teal);}
+.step-item::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:transparent;transition:background .2s;
+}
+.step-item.active::after{background:var(--accent);}
+.step-item.done::after{background:var(--teal);}
+.step-num{
+  width:22px;height:22px;border-radius:50%;border:1.5px solid currentColor;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.7rem;font-weight:700;flex-shrink:0;
+}
+.step-item.done .step-num{background:var(--teal);border-color:var(--teal);color:#000;}
+.step-item.active .step-num{background:var(--accent);border-color:var(--accent);color:#fff;}
+.step-divider{width:24px;height:1px;background:var(--border);flex-shrink:0;}
+
+/* ── MAIN ── */
+main{padding:130px 32px 80px;max-width:1080px;margin:0 auto;}
+.step-panel{display:none;animation:fadeIn .3s ease;}
+.step-panel.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── SECTION TITLES ── */
+.panel-title{font-size:1.6rem;font-weight:800;margin-bottom:6px;}
+.panel-title span{
+  background:var(--accent-g);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text;
+}
+.panel-sub{color:var(--muted);font-size:.88rem;margin-bottom:36px;line-height:1.7;}
+
+/* ── CARDS ── */
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);padding:28px;margin-bottom:20px;
+}
+.card-title{
+  font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--accent);margin-bottom:18px;
+  display:flex;align-items:center;gap:10px;
+}
+.card-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* ── FORM ELEMENTS ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.form-grid.col3{grid-template-columns:1fr 1fr 1fr;}
+.form-grid.col1{grid-template-columns:1fr;}
+.form-field{display:flex;flex-direction:column;gap:7px;}
+.form-field.full{grid-column:1/-1;}
+label{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+label .req{color:var(--orange);margin-left:3px;}
+input[type="text"],input[type="url"],input[type="password"],
+input[type="number"],select,textarea{
+  background:var(--surface2);border:1px solid var(--border2);
+  border-radius:var(--r-sm);color:var(--text);padding:12px 16px;
+  font-size:.92rem;font-family:inherit;transition:border-color .2s,background .2s;
+  outline:none;width:100%;
+}
+input:focus,select:focus,textarea:focus{
+  border-color:var(--accent);background:rgba(124,92,252,.05);
+}
+input::placeholder,textarea::placeholder{color:var(--muted);}
+select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237c5cfc' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;
+  background-size:16px;padding-right:40px;-webkit-appearance:none;
+}
+select option{background:var(--surface2);}
+textarea{resize:vertical;min-height:90px;line-height:1.6;}
+
+/* ── CHECKBOX PILLS ── */
+.pill-group{display:flex;flex-wrap:wrap;gap:8px;}
+.pill{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 16px;border-radius:100px;
+  border:1px solid var(--border2);cursor:pointer;
+  font-size:.82rem;color:var(--muted);transition:all .2s;user-select:none;
+}
+.pill input{display:none;}
+.pill:hover{border-color:var(--accent);color:var(--text);}
+.pill.active{
+  border-color:var(--accent);background:rgba(124,92,252,.15);
+  color:var(--accent);font-weight:600;
+}
+
+/* ── LOGO UPLOAD ── */
+.logo-upload-area{
+  border:2px dashed var(--border2);border-radius:var(--r);
+  padding:24px;text-align:center;cursor:pointer;transition:all .2s;
+  position:relative;overflow:hidden;min-height:120px;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;
+}
+.logo-upload-area:hover{border-color:var(--accent);background:rgba(124,92,252,.04);}
+.logo-upload-area input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.logo-preview-img{max-height:80px;max-width:100%;object-fit:contain;border-radius:6px;}
+.upload-icon{font-size:2rem;color:var(--muted);}
+.upload-hint{font-size:.78rem;color:var(--muted);}
+
+/* ── REFERENCE UPLOAD ── */
+.ref-drop-zone{
+  border:2px dashed var(--border2);border-radius:var(--r);
+  padding:40px;text-align:center;cursor:pointer;transition:all .2s;
+  position:relative;
+}
+.ref-drop-zone:hover,.ref-drop-zone.drag-over{
+  border-color:var(--accent);background:rgba(124,92,252,.04);
+}
+.ref-drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.ref-drop-icon{font-size:3rem;margin-bottom:12px;}
+.ref-images-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:12px;margin-top:16px;
+}
+.ref-img-wrap{
+  position:relative;border-radius:var(--r-sm);overflow:hidden;
+  aspect-ratio:1;background:var(--surface2);
+}
+.ref-img-wrap img{width:100%;height:100%;object-fit:cover;}
+.ref-img-remove{
+  position:absolute;top:6px;right:6px;
+  width:24px;height:24px;border-radius:50%;
+  background:rgba(0,0,0,.7);border:none;color:white;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:12px;transition:background .2s;
+}
+.ref-img-remove:hover{background:var(--red);}
+
+/* ── BUTTONS ── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:12px 24px;border-radius:var(--r-sm);font-size:.9rem;
+  font-weight:700;cursor:pointer;transition:all .25s;
+  border:none;font-family:inherit;letter-spacing:.03em;text-decoration:none;
+}
+.btn-primary{
+  background:var(--accent-g);color:white;
+  box-shadow:0 4px 20px rgba(124,92,252,.35);
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(124,92,252,.5);}
+.btn-secondary{
+  background:var(--surface2);color:var(--text);border:1px solid var(--border2);
+}
+.btn-secondary:hover{background:var(--surface3);border-color:var(--border2);}
+.btn-teal{
+  background:linear-gradient(135deg,var(--teal),#00b896);color:#000;
+  font-weight:800;box-shadow:0 4px 16px rgba(0,212,170,.3);
+}
+.btn-teal:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,212,170,.45);}
+.btn-orange{
+  background:linear-gradient(135deg,#ff8c42,#ff6b1a);color:white;
+  box-shadow:0 4px 16px rgba(255,140,66,.3);
+}
+.btn-orange:hover{transform:translateY(-2px);}
+.btn-canva{
+  background:linear-gradient(135deg,#8B3DFF,#6B1FDF);color:white;
+  box-shadow:0 4px 16px rgba(139,61,255,.3);
+}
+.btn-canva:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(139,61,255,.5);}
+.btn-freepik{
+  background:linear-gradient(135deg,#FF5C39,#E03A1A);color:white;
+  box-shadow:0 4px 16px rgba(255,92,57,.3);
+}
+.btn-freepik:hover{transform:translateY(-2px);}
+.btn-lg{padding:15px 36px;font-size:1rem;}
+.btn-sm{padding:8px 16px;font-size:.78rem;}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important;}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:200;
+  background:rgba(11,11,18,.95);backdrop-filter:blur(20px);
+  border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 32px;height:68px;
+}
+.nav-status{font-size:.82rem;color:var(--muted);}
+.nav-actions{display:flex;gap:12px;}
+
+/* ── ANALYSIS RESULTS ── */
+.color-palette{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.swatch{
+  width:52px;height:52px;border-radius:8px;cursor:pointer;
+  position:relative;transition:transform .2s;border:2px solid transparent;
+  flex-shrink:0;
+}
+.swatch:hover{transform:scale(1.1);border-color:rgba(255,255,255,.3);}
+.swatch-tooltip{
+  position:absolute;bottom:-26px;left:50%;transform:translateX(-50%);
+  font-size:.65rem;white-space:nowrap;background:var(--surface3);
+  padding:2px 6px;border-radius:4px;color:var(--text);pointer-events:none;
+  opacity:0;transition:opacity .2s;
+}
+.swatch:hover .swatch-tooltip{opacity:1;}
+
+.style-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+.style-tag{
+  padding:5px 14px;border-radius:100px;
+  background:rgba(124,92,252,.12);border:1px solid rgba(124,92,252,.3);
+  color:var(--accent);font-size:.78rem;font-weight:600;
+}
+.analysis-section{margin-bottom:24px;}
+.analysis-label{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.analysis-value{font-size:.92rem;line-height:1.7;color:var(--text);}
+
+/* ── PROMPT EDITOR ── */
+.prompt-box{
+  background:var(--surface2);border:1px solid var(--border2);
+  border-radius:var(--r);padding:20px;position:relative;
+}
+.prompt-box textarea{
+  background:transparent;border:none;padding:0;font-size:.9rem;
+  line-height:1.7;min-height:100px;resize:vertical;
+}
+.prompt-box textarea:focus{border:none;background:transparent;}
+
+/* ── ENGINE SELECTOR ── */
+.engine-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px;}
+.engine-card{
+  border:1.5px solid var(--border);border-radius:var(--r);padding:16px 18px;
+  cursor:pointer;transition:all .2s;position:relative;
+}
+.engine-card.selected-gemini{border-color:var(--gemini);background:rgba(66,133,244,.07);}
+.engine-card.selected-freepik{border-color:var(--freepik);background:rgba(255,92,57,.07);}
+.engine-card input{position:absolute;opacity:0;}
+.engine-name{font-weight:700;font-size:.88rem;margin-bottom:3px;}
+.engine-desc{font-size:.74rem;color:var(--muted);line-height:1.5;}
+.engine-badge{
+  display:inline-block;padding:2px 8px;border-radius:100px;
+  font-size:.65rem;font-weight:700;margin-top:6px;
+}
+.badge-free{background:rgba(34,197,94,.15);color:var(--success);border:1px solid rgba(34,197,94,.3);}
+.badge-paid{background:rgba(255,140,66,.12);color:var(--orange);border:1px solid rgba(255,140,66,.25);}
+
+/* ── IMAGE RESULTS ── */
+.results-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:16px;margin-top:20px;
+}
+.result-card{
+  background:var(--surface2);border-radius:var(--r);overflow:hidden;
+  border:1px solid var(--border);transition:transform .2s;
+}
+.result-card:hover{transform:translateY(-3px);}
+.result-img-wrap{aspect-ratio:1;background:var(--surface3);overflow:hidden;position:relative;}
+.result-img-wrap img{width:100%;height:100%;object-fit:cover;}
+.result-actions{
+  padding:12px;display:flex;gap:8px;flex-wrap:wrap;
+  border-top:1px solid var(--border);
+}
+.engine-label{
+  position:absolute;top:8px;left:8px;
+  padding:3px 10px;border-radius:100px;font-size:.65rem;font-weight:700;
+  backdrop-filter:blur(8px);
+}
+.label-gemini{background:rgba(66,133,244,.8);color:white;}
+.label-freepik{background:rgba(255,92,57,.8);color:white;}
+
+/* ── LOADING ── */
+.loading-wrap{
+  display:flex;flex-direction:column;align-items:center;
+  gap:16px;padding:60px 20px;
+}
+.spinner-ring{
+  width:48px;height:48px;border:3px solid var(--border);
+  border-top-color:var(--accent);border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{color:var(--muted);font-size:.88rem;text-align:center;}
+.loading-steps{
+  display:flex;flex-direction:column;gap:8px;margin-top:8px;
+  font-size:.78rem;color:var(--muted);text-align:center;
+}
+.loading-step{opacity:.4;transition:opacity .3s;}
+.loading-step.active{opacity:1;color:var(--accent);}
+.loading-step.done{opacity:.7;color:var(--teal);}
+
+/* ── TOAST ── */
+.toast-container{
+  position:fixed;bottom:80px;right:24px;z-index:300;
+  display:flex;flex-direction:column;gap:8px;pointer-events:none;
+}
+.toast{
+  background:var(--surface3);border:1px solid var(--border2);
+  border-radius:var(--r-sm);padding:12px 18px;font-size:.84rem;
+  display:flex;align-items:center;gap:10px;
+  animation:slideIn .3s ease;max-width:320px;
+  pointer-events:all;
+}
+.toast.success{border-left:3px solid var(--success);}
+.toast.error{border-left:3px solid var(--red);}
+.toast.info{border-left:3px solid var(--accent);}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* ── SETTINGS MODAL ── */
+.modal-overlay{
+  display:none;position:fixed;inset:0;z-index:500;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(8px);
+  align-items:center;justify-content:center;
+}
+.modal-overlay.open{display:flex;}
+.modal{
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:var(--r);padding:36px;width:560px;max-width:95vw;
+  max-height:90vh;overflow-y:auto;
+}
+.modal-title{font-size:1.2rem;font-weight:800;margin-bottom:6px;}
+.modal-sub{color:var(--muted);font-size:.84rem;margin-bottom:28px;line-height:1.6;}
+.api-row{margin-bottom:24px;}
+.api-label{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:8px;
+}
+.api-label-text{
+  display:flex;align-items:center;gap:8px;
+  font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+}
+.api-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.dot-gemini{background:var(--gemini);}
+.dot-freepik{background:var(--freepik);}
+.dot-canva{background:var(--canva);}
+.api-link{font-size:.72rem;color:var(--accent);text-decoration:none;}
+.api-link:hover{text-decoration:underline;}
+.api-status{
+  margin-top:6px;font-size:.72rem;display:flex;align-items:center;gap:5px;
+}
+.status-ok{color:var(--success);}
+.status-missing{color:var(--muted);}
+
+/* ── INFO BOX ── */
+.info-box{
+  background:rgba(124,92,252,.07);border:1px solid rgba(124,92,252,.2);
+  border-radius:var(--r-sm);padding:16px;
+  font-size:.83rem;line-height:1.7;color:rgba(232,232,244,.7);
+  margin-bottom:20px;
+}
+.info-box strong{color:var(--accent);}
+
+/* ── EXPORT SECTION ── */
+.export-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.export-card{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r);padding:24px;text-align:center;
+}
+.export-card-icon{font-size:2.4rem;margin-bottom:10px;}
+.export-card-title{font-weight:700;font-size:.95rem;margin-bottom:6px;}
+.export-card-desc{font-size:.78rem;color:var(--muted);line-height:1.6;margin-bottom:16px;}
+
+/* ── BRAND COLORS DISPLAY ── */
+.brand-color-strip{
+  display:flex;height:48px;border-radius:var(--r-sm);overflow:hidden;margin-top:8px;
+}
+.brand-color-seg{flex:1;cursor:pointer;transition:flex .3s;}
+.brand-color-seg:hover{flex:2;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  header{padding:0 16px;}
+  main{padding:130px 16px 80px;}
+  .progress-bar{padding:0 8px;}
+  .step-item{padding:0 12px;font-size:.74rem;}
+  .form-grid,.form-grid.col3,.engine-grid,.export-grid{grid-template-columns:1fr;}
+  .bottom-nav{padding:0 16px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">✦</div>
+    CA Brand Designer <span>/ AI 品牌設計系統</span>
+  </div>
+  <div class="header-right">
+    <div class="btn-icon" id="settingsBtn" title="API 設定" onclick="openSettings()">⚙️</div>
+  </div>
+</header>
+
+<!-- ── PROGRESS BAR ── -->
+<div class="progress-bar" id="progressBar">
+  <div class="step-item active" data-step="1" onclick="goStep(1)">
+    <div class="step-num">1</div><span>品牌設定</span>
+  </div>
+  <div class="step-divider"></div>
+  <div class="step-item" data-step="2" onclick="goStep(2)">
+    <div class="step-num">2</div><span>風格參考</span>
+  </div>
+  <div class="step-divider"></div>
+  <div class="step-item" data-step="3" onclick="goStep(3)">
+    <div class="step-num">3</div><span>AI 生圖</span>
+  </div>
+  <div class="step-divider"></div>
+  <div class="step-item" data-step="4" onclick="goStep(4)">
+    <div class="step-num">4</div><span>匯出設計</span>
+  </div>
+</div>
+
+<!-- ── MAIN ── -->
+<main>
+
+  <!-- STEP 1: BRAND SETUP -->
+  <div class="step-panel active" id="step1">
+    <h1 class="panel-title">品牌<span>設定</span></h1>
+    <p class="panel-sub">告訴我們這個品牌的基本資訊，作為設計方向的依據。</p>
+
+    <div class="card">
+      <div class="card-title">品牌識別</div>
+      <div class="form-grid">
+        <div class="form-field">
+          <label>品牌名稱 <span class="req">*</span></label>
+          <input type="text" id="brandName" placeholder="例：TNT Basketball Club">
+        </div>
+        <div class="form-field">
+          <label>品牌標語 / Slogan</label>
+          <input type="text" id="brandSlogan" placeholder="例：Focus · Never Lose">
+        </div>
+        <div class="form-field">
+          <label>品牌 Logo 上傳</label>
+          <div class="logo-upload-area" id="logoUploadArea">
+            <input type="file" id="logoFile" accept="image/*" onchange="handleLogoUpload(this)">
+            <div id="logoPlaceholder">
+              <div class="upload-icon">🖼️</div>
+              <div class="upload-hint">點擊或拖曳上傳 Logo（PNG/SVG）</div>
+            </div>
+            <img id="logoPreview" class="logo-preview-img" style="display:none">
+          </div>
+        </div>
+        <div class="form-field">
+          <label>主要產業類別</label>
+          <select id="industry">
+            <option value="">請選擇</option>
+            <option>運動 / 健身</option>
+            <option>餐飲 / 食品</option>
+            <option>科技 / 新創</option>
+            <option>時尚 / 服裝</option>
+            <option>教育 / 培訓</option>
+            <option>醫療 / 健康</option>
+            <option>不動產</option>
+            <option>娛樂 / 媒體</option>
+            <option>美妝 / 保養</option>
+            <option>其他</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">設計需求</div>
+      <div class="form-grid col1">
+        <div class="form-field">
+          <label>設計目標 <span class="req">*</span></label>
+          <textarea id="designGoal" placeholder="描述這次設計要達成的目標，例如：吸引 15–25 歲的年輕球迷，傳遞專業運動精神，增加社群追蹤…"></textarea>
+        </div>
+      </div>
+      <div class="form-grid" style="margin-top:16px;">
+        <div class="form-field">
+          <label>主要使用平台 <span class="req">*</span></label>
+          <select id="platform">
+            <option value="">請選擇</option>
+            <option>Instagram 貼文 (1:1)</option>
+            <option>Instagram 限時動態 (9:16)</option>
+            <option>Facebook 封面 (16:9)</option>
+            <option>Facebook 貼文</option>
+            <option>網站橫幅</option>
+            <option>YouTube 縮圖</option>
+            <option>海報 / 印刷</option>
+            <option>名片</option>
+            <option>Line 貼圖</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>目標受眾</label>
+          <input type="text" id="audience" placeholder="例：15–25 歲運動愛好者、台灣北部學生">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">品牌調性</div>
+      <div class="form-field">
+        <label>選擇風格標籤（可複選）</label>
+        <div class="pill-group" id="toneGroup" style="margin-top:8px;">
+          <label class="pill" onclick="togglePill(this)"><input type="checkbox" value="Bold 大膽衝擊"> Bold 大膽</label>
+          <label class="pill" onclick="togglePill(this)"><input type="checkbox" value="Minimalist 極簡"> Minimalist 極簡</label>
+          <label class="pill" onclick="togglePill(this)"><input type="checkbox" value="Energetic 活力"> Energetic 活力</label>
+          <label class="pill" onclick="togglePill(this)"><input type="checkbox" value="Professional 專業"> Professional 專業</label>
+          <label class="pill" onclick="togglePill(this)"><input type="checkbox" value="Luxury 奢華"> Luxury 奢華</label>
+          <label class="pill" onclick="togglePill(this)"><input type="checkbox" value="Playful 趣味"> Playful 趣味</label>
+          <label class="pill" onclick="togglePill(this)"><input type="checkbox" value="Dark 暗黑酷"> Dark 暗黑</label>
+          <label class="pill" onclick="togglePill(this)"><input type="checkbox" value="Clean 清爽"> Clean 清爽</label>
+          <label class="pill" onclick="togglePill(this)"><input type="checkbox" value="Retro 復古"> Retro 復古</label>
+          <label class="pill" onclick="togglePill(this)"><input type="checkbox" value="Futuristic 未來感"> Futuristic 未來</label>
+          <label class="pill" onclick="togglePill(this)"><input type="checkbox" value="Sporty 運動感"> Sporty 運動</label>
+          <label class="pill" onclick="togglePill(this)"><input type="checkbox" value="Warm 溫暖"> Warm 溫暖</label>
+        </div>
+      </div>
+      <div class="form-field" style="margin-top:20px;">
+        <label>品牌現有主色（選填，可輸入 HEX）</label>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;" id="colorInputs">
+          <input type="text" class="brand-color-input" placeholder="#FF5733" style="width:130px;" maxlength="7">
+          <input type="text" class="brand-color-input" placeholder="#003082" style="width:130px;" maxlength="7">
+          <input type="text" class="brand-color-input" placeholder="#FFFFFF" style="width:130px;" maxlength="7">
+          <input type="color" id="colorPicker" style="width:42px;height:42px;padding:2px;border:1px solid var(--border2);border-radius:6px;background:var(--surface2);cursor:pointer;">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: REFERENCE IMAGES + ANALYSIS -->
+  <div class="step-panel" id="step2">
+    <h1 class="panel-title">風格<span>參考</span></h1>
+    <p class="panel-sub">上傳 1–4 張參考圖，AI 將分析配色、版型風格、情緒氛圍，作為生圖依據。</p>
+
+    <div class="card">
+      <div class="card-title">上傳參考圖片</div>
+      <div class="ref-drop-zone" id="refDropZone">
+        <input type="file" id="refFiles" accept="image/*" multiple onchange="handleRefUpload(this)">
+        <div class="ref-drop-icon">🖼️</div>
+        <div style="font-weight:600;margin-bottom:6px;">拖曳圖片到這裡，或點擊選擇</div>
+        <div class="upload-hint">支援 JPG / PNG / WebP，最多 4 張</div>
+      </div>
+      <div class="ref-images-grid" id="refImagesGrid"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Gemini 風格分析</div>
+      <div class="info-box">
+        <strong>Gemini Vision</strong> 將解析參考圖的配色方案、版型風格、排版特徵、情緒氛圍，自動產生設計關鍵字與生圖 Prompt。<br>
+        需要 Gemini API Key — 點右上角 ⚙️ 設定。
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="analyzeStyle()" id="analyzeBtn">
+          ✨ 開始風格分析
+        </button>
+        <button class="btn btn-secondary" onclick="skipAnalysis()">
+          跳過（手動填寫）
+        </button>
+      </div>
+
+      <!-- Analysis Loading -->
+      <div class="loading-wrap" id="analysisLoading" style="display:none;">
+        <div class="spinner-ring"></div>
+        <div class="loading-text">Gemini 分析中…</div>
+        <div class="loading-steps">
+          <div class="loading-step active" id="ls1">🔍 解讀圖片內容</div>
+          <div class="loading-step" id="ls2">🎨 提取配色方案</div>
+          <div class="loading-step" id="ls3">📐 辨識版型風格</div>
+          <div class="loading-step" id="ls4">✍️ 產生設計關鍵字</div>
+          <div class="loading-step" id="ls5">🪄 建立生圖 Prompt</div>
+        </div>
+      </div>
+
+      <!-- Analysis Results -->
+      <div id="analysisResults" style="display:none;margin-top:24px;">
+
+        <div class="analysis-section">
+          <div class="analysis-label">🎨 提取配色方案</div>
+          <div class="color-palette" id="resultColors"></div>
+          <div class="brand-color-strip" id="colorStrip" style="margin-top:12px;"></div>
+        </div>
+
+        <div class="analysis-section">
+          <div class="analysis-label">🏷️ 風格標籤</div>
+          <div class="style-tags" id="resultStyleTags"></div>
+        </div>
+
+        <div class="form-grid" style="margin-top:0;">
+          <div class="analysis-section">
+            <div class="analysis-label">📐 版型特徵</div>
+            <div class="analysis-value" id="resultLayout"></div>
+          </div>
+          <div class="analysis-section">
+            <div class="analysis-label">✍️ 字體建議</div>
+            <div class="analysis-value" id="resultTypography"></div>
+          </div>
+          <div class="analysis-section">
+            <div class="analysis-label">💡 情緒氛圍</div>
+            <div class="analysis-value" id="resultMood"></div>
+          </div>
+          <div class="analysis-section">
+            <div class="analysis-label">⚡ 視覺重點</div>
+            <div class="analysis-value" id="resultComposition"></div>
+          </div>
+        </div>
+
+        <div class="analysis-section" style="margin-top:4px;">
+          <div class="analysis-label">📝 設計建議</div>
+          <div class="analysis-value" id="resultRecommendation" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:16px;line-height:1.8;"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: GENERATE -->
+  <div class="step-panel" id="step3">
+    <h1 class="panel-title">AI <span>生圖</span></h1>
+    <p class="panel-sub">根據品牌資料與風格分析，選擇 AI 引擎並生成設計素材。</p>
+
+    <div class="card">
+      <div class="card-title">選擇 AI 引擎</div>
+      <div class="engine-grid" id="engineGrid" style="grid-template-columns:1fr;">
+        <label class="engine-card selected-gemini" id="ec-gemini" onclick="selectEngine('gemini')">
+          <input type="radio" name="engine" value="gemini" checked>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span style="font-size:1.2rem;">🔵</span>
+            <div class="engine-name">Gemini Imagen 4</div>
+          </div>
+          <div class="engine-desc">Google 最新 Imagen 4 Fast，高品質商業設計生成，支援中文 Prompt。生圖後可一鍵送到 Magnific 升級畫質。</div>
+          <div class="engine-badge badge-paid">已啟用</div>
+        </label>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-field">
+          <label>圖片尺寸 / 格式</label>
+          <select id="imageSize">
+            <option value="square_1_1">正方形 1:1（社群貼文）</option>
+            <option value="portrait_2_3">直式 2:3（限時動態）</option>
+            <option value="landscape_4_3">橫式 4:3（橫幅）</option>
+            <option value="landscape_16_9">寬式 16:9（封面）</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>生成張數</label>
+          <select id="imageCount">
+            <option value="1">1 張</option>
+            <option value="2" selected>2 張</option>
+            <option value="4">4 張</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">生圖 Prompt 編輯</div>
+      <div class="prompt-box">
+        <div style="font-size:.7rem;color:var(--teal);margin-bottom:8px;letter-spacing:.1em;text-transform:uppercase;">
+          ✨ 由 Gemini 分析自動產生（可自由修改）
+        </div>
+        <textarea id="mainPrompt" placeholder="Prompt 將在風格分析後自動填入，或手動輸入描述…
+例：A professional sports brand visual, basketball energy, dark navy background with orange accent colors, bold typography, dynamic composition, high contrast lighting, sports photography style..."></textarea>
+      </div>
+      <div class="form-field" style="margin-top:16px;">
+        <label>Negative Prompt（要排除的元素）</label>
+        <textarea id="negativePrompt" placeholder="blurry, low quality, watermark, text, logo, distorted, ugly, bad anatomy" style="min-height:60px;"></textarea>
+      </div>
+
+      <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;align-items:center;">
+        <button class="btn btn-teal btn-lg" onclick="generateImages()" id="generateBtn">
+          🪄 開始生圖
+        </button>
+        <button class="btn btn-secondary" onclick="buildPromptFromBrand()">
+          🔄 重新產生 Prompt
+        </button>
+        <span style="font-size:.78rem;color:var(--muted);" id="apiKeyWarning"></span>
+      </div>
+    </div>
+
+    <!-- Generation Loading -->
+    <div id="genLoading" style="display:none;">
+      <div class="card">
+        <div class="loading-wrap">
+          <div class="spinner-ring" style="border-top-color:var(--teal);"></div>
+          <div class="loading-text" id="genLoadingText">AI 生圖中，請稍候…</div>
+          <div style="font-size:.75rem;color:var(--muted);margin-top:4px;">這可能需要 10–30 秒</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div id="genResults" style="display:none;">
+      <div class="card">
+        <div class="card-title">生成結果</div>
+        <div class="results-grid" id="resultsGrid"></div>
+        <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="generateImages()">🔄 重新生圖</button>
+          <button class="btn btn-secondary" onclick="goStep(4)">繼續匯出 →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4: EXPORT -->
+  <div class="step-panel" id="step4">
+    <h1 class="panel-title">匯出<span>設計</span></h1>
+    <p class="panel-sub">將生成的素材匯出到 Canva 進行細部設計，或搜尋 Freepik 補充素材。</p>
+
+    <div class="card">
+      <div class="card-title">品牌色票</div>
+      <div id="exportColorPalette">
+        <div style="color:var(--muted);font-size:.85rem;">請先完成風格分析以顯示配色方案</div>
+      </div>
+    </div>
+
+    <div class="export-grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
+      <div class="export-card">
+        <div class="export-card-icon">🚀</div>
+        <div class="export-card-title">Magnific 升級畫質</div>
+        <div class="export-card-desc">
+          將 Gemini 生成的圖送到 Magnific 升級到 4K/8K、修細節
+        </div>
+        <button class="btn" onclick="openMagnific()" style="background:linear-gradient(135deg,#FF1493,#C71585);color:white;">
+          前往 Magnific →
+        </button>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:8px;">
+          你是 Premium+ 會員，可直接使用
+        </div>
+      </div>
+      <div class="export-card">
+        <div class="export-card-icon">🎨</div>
+        <div class="export-card-title">Canva 設計</div>
+        <div class="export-card-desc">
+          將圖片作為底圖，在 Canva 疊加文字、Logo 完成設計
+        </div>
+        <button class="btn btn-canva" onclick="openCanvaWithImage()">
+          開啟 Canva →
+        </button>
+      </div>
+      <div class="export-card">
+        <div class="export-card-icon">🔍</div>
+        <div class="export-card-title">Freepik 素材庫</div>
+        <div class="export-card-desc">
+          搜尋風格相符的現成向量、圖庫素材補強設計
+        </div>
+        <button class="btn btn-freepik" onclick="searchFreepik()">
+          搜尋素材 →
+        </button>
+      </div>
+    </div>
+
+    <div class="card" id="exportGallery">
+      <div class="card-title">生成圖片 — 下載管理</div>
+      <div id="exportImageList">
+        <div style="color:var(--muted);font-size:.85rem;">請先在「AI 生圖」步驟生成圖片</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">品牌設計規格書</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <button class="btn btn-secondary" onclick="exportStyleGuide()">
+          📄 下載設計規格書（JSON）
+        </button>
+        <button class="btn btn-secondary" onclick="copyBrandColors()">
+          🎨 複製品牌色票 HEX
+        </button>
+        <button class="btn btn-secondary" onclick="copyPrompt()">
+          📋 複製生圖 Prompt
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">完整工作流程</div>
+      <div class="info-box" style="margin-bottom:0;">
+        <strong>1. Gemini 生圖（已完成）</strong><br>
+        在 AI 生圖步驟用 Imagen 4 產生初稿<br><br>
+        <strong>2. Magnific 升級畫質</strong><br>
+        圖片下載後 → 開啟 Magnific 網頁版 → 上傳 → 選 Upscale → 4K 輸出<br><br>
+        <strong>3. Canva 完稿</strong><br>
+        將升級後的高解析圖上傳 Canva → 疊加 Logo / 文案 → 匯出最終設計<br><br>
+        <strong>4. Freepik 補素材</strong><br>
+        需要額外圖庫元素（icons、向量）時用 Freepik 搜尋
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── BOTTOM NAV ── -->
+<div class="bottom-nav">
+  <div class="nav-status" id="navStatus">步驟 1 / 4 — 品牌設定</div>
+  <div class="nav-actions">
+    <button class="btn btn-secondary" id="prevBtn" onclick="prevStep()" style="display:none;">← 上一步</button>
+    <button class="btn btn-primary" id="nextBtn" onclick="nextStep()">下一步 →</button>
+  </div>
+</div>
+
+<!-- ── SETTINGS MODAL ── -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <div class="modal-title">⚙️ API 金鑰設定</div>
+    <div class="modal-sub">
+      API Key 只儲存在你的瀏覽器本機（localStorage），不會上傳至任何伺服器。
+    </div>
+
+    <div class="api-row">
+      <div class="api-label">
+        <div class="api-label-text">
+          <div class="api-dot dot-gemini"></div>
+          Gemini API Key（Google AI Studio）
+        </div>
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" class="api-link">申請免費 Key →</a>
+      </div>
+      <input type="password" id="geminiKey" placeholder="AIza...">
+      <div class="api-status" id="geminiStatus">
+        <span class="status-missing">⚪ 未設定</span>
+      </div>
+      <div style="font-size:.74rem;color:var(--muted);margin-top:6px;line-height:1.6;">
+        用於：風格分析（Gemini Vision）+ Imagen 3 生圖。免費額度每分鐘 15 次。
+      </div>
+    </div>
+
+    <div class="api-row" style="display:none;">
+      <input type="password" id="freepikKey" placeholder="FPSX-...">
+      <div class="api-status" id="freepikStatus"></div>
+    </div>
+
+    <div class="api-row">
+      <div class="api-label">
+        <div class="api-label-text">
+          <div class="api-dot" style="background:#FF1493;"></div>
+          Magnific（圖像升級）
+        </div>
+        <a href="https://magnific.ai" target="_blank" class="api-link">前往 Magnific →</a>
+      </div>
+      <div class="api-status">
+        <span class="status-ok">✅ 使用網頁版（你已是 Premium+ 會員）</span>
+      </div>
+      <div style="font-size:.74rem;color:var(--muted);margin-top:6px;line-height:1.6;">
+        Gemini 生圖後，可一鍵跳到 Magnific 網頁版手動升級畫質、改尺寸。
+      </div>
+    </div>
+
+    <div class="api-row" style="display:none;">
+      <input type="password" id="canvaKey">
+      <div class="api-status" id="canvaStatus"></div>
+    </div>
+
+    <div style="display:flex;gap:12px;margin-top:24px;">
+      <button class="btn btn-primary" onclick="saveSettings()">💾 儲存設定</button>
+      <button class="btn btn-secondary" onclick="closeSettings()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOAST CONTAINER ── -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

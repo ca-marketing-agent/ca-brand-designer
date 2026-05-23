@@ -698,7 +698,7 @@ textarea{resize:vertical;min-height:110px;line-height:1.7;}
       <div class="card-title">Gemini 風格分析</div>
       <div class="info-box">
         <strong>Gemini Vision</strong> 將解析參考圖的配色方案、版型風格、排版特徵、情緒氛圍，自動產生設計關鍵字與生圖 Prompt。<br>
-        需要 Gemini API Key — 點右上角 ⚙️ 設定。
+        ✅ 由 CA 公司代理伺服器處理，免設定即可使用。
       </div>
       <div style="display:flex;gap:12px;flex-wrap:wrap;">
         <button class="btn btn-primary" onclick="analyzeStyle()" id="analyzeBtn">
@@ -952,26 +952,23 @@ textarea{resize:vertical;min-height:110px;line-height:1.7;}
 <!-- ── SETTINGS MODAL ── -->
 <div class="modal-overlay" id="settingsModal">
   <div class="modal">
-    <div class="modal-title">⚙️ API 金鑰設定</div>
+    <div class="modal-title">⚙️ 設定</div>
     <div class="modal-sub">
-      API Key 只儲存在你的瀏覽器本機（localStorage），不會上傳至任何伺服器。
+      Gemini 風格分析與 Imagen 4 生圖已由 CA 公司代理伺服器處理，無須輸入 API Key。
     </div>
 
     <div class="api-row">
       <div class="api-label">
         <div class="api-label-text">
           <div class="api-dot dot-gemini"></div>
-          Gemini API Key（Google AI Studio）
+          Gemini Vision + Imagen 4
         </div>
-        <a href="https://aistudio.google.com/app/apikey" target="_blank" class="api-link">申請免費 Key →</a>
       </div>
-      <input type="password" id="geminiKey" placeholder="AIza...">
-      <div class="api-status" id="geminiStatus">
-        <span class="status-missing">⚪ 未設定</span>
+      <div class="api-status">
+        <span class="status-ok">✅ 由公司 Worker 代理（已就緒）</span>
       </div>
       <div style="font-size:.82rem;color:var(--muted);margin-top:8px;line-height:1.7;">
-        用於：風格分析（Gemini 2.5 Flash Vision）+ Imagen 4 生圖。<br>
-        建議啟用 Paid Tier 以解除每分鐘 15 次限制。
+        所有同事共用公司付費額度，免設定即可使用。
       </div>
     </div>
 

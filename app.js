@@ -12,9 +12,13 @@ const state = {
   selectedEngine: 'gemini',
 };
 
+// ── BACKEND PROXY ─────────────────────────────────────
+// Gemini API key is held server-side by the Cloudflare Worker.
+const WORKER_URL = 'https://ca-brand-designer-proxy.ca80417520.workers.dev';
+
 // ── API KEYS (localStorage) ───────────────────────────
 const KEYS = {
-  get gemini()  { return localStorage.getItem('ca_gemini_key')  || ''; },
+  get gemini()  { return 'worker'; }, // proxied — always available
   get freepik() { return localStorage.getItem('ca_freepik_key') || ''; },
   get canva()   { return localStorage.getItem('ca_canva_key')   || ''; },
 };
@@ -100,33 +104,34 @@ document.getElementById('settingsModal').addEventListener('click', e => {
 });
 
 function loadApiKeyFields() {
-  document.getElementById('geminiKey').value  = KEYS.gemini;
-  document.getElementById('freepikKey').value = KEYS.freepik;
-  document.getElementById('canvaKey').value   = KEYS.canva;
+  const f = document.getElementById('freepikKey');
+  const c = document.getElementById('canvaKey');
+  if (f) f.value = KEYS.freepik;
+  if (c) c.value = KEYS.canva;
 }
 
 function saveSettings() {
-  const g = document.getElementById('geminiKey').value.trim();
-  const f = document.getElementById('freepikKey').value.trim();
-  const c = document.getElementById('canvaKey').value.trim();
-  if (g) localStorage.setItem('ca_gemini_key', g);
-  else   localStorage.removeItem('ca_gemini_key');
+  const fEl = document.getElementById('freepikKey');
+  const cEl = document.getElementById('canvaKey');
+  const f = fEl ? fEl.value.trim() : '';
+  const c = cEl ? cEl.value.trim() : '';
   if (f) localStorage.setItem('ca_freepik_key', f);
   else   localStorage.removeItem('ca_freepik_key');
   if (c) localStorage.setItem('ca_canva_key', c);
   else   localStorage.removeItem('ca_canva_key');
   updateStatusIndicators();
   closeSettings();
-  toast('API 設定已儲存', 'success');
+  toast('設定已儲存', 'success');
 }
 
 function updateStatusIndicators() {
   const set = (id, ok, label) => {
-    document.getElementById(id).innerHTML = ok
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = ok
       ? `<span class="status-ok">✅ 已設定</span>`
       : `<span class="status-missing">⚪ ${label}</span>`;
   };
-  set('geminiStatus',  !!KEYS.gemini,  '未設定 — 需要分析與生圖');
   set('freepikStatus', !!KEYS.freepik, '未設定');
   set('canvaStatus',   !!KEYS.canva,   '未設定（可選）');
 }
@@ -206,11 +211,6 @@ function initDragDrop() {
 
 // ── GEMINI VISION ANALYSIS ────────────────────────────
 async function analyzeStyle() {
-  if (!KEYS.gemini) {
-    toast('請先在 ⚙️ 設定 Gemini API Key', 'error');
-    openSettings();
-    return;
-  }
   if (state.refImages.length === 0) {
     toast('請先上傳至少 1 張參考圖', 'error');
     return;
@@ -257,19 +257,16 @@ async function analyzeStyle() {
 `;
 
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${KEYS.gemini}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{
-            parts: [...imageParts, { text: textPrompt }]
-          }],
-          generationConfig: { temperature: 0.4, maxOutputTokens: 2048 }
-        })
-      }
-    );
+    const res = await fetch(`${WORKER_URL}/vision`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [...imageParts, { text: textPrompt }]
+        }],
+        generationConfig: { temperature: 0.4, maxOutputTokens: 2048 }
+      })
+    });
 
     if (!res.ok) {
       const err = await res.json();
@@ -382,9 +379,7 @@ function checkApiWarning() {
   const warn = document.getElementById('apiKeyWarning');
   if (!warn) return;
   const e = state.selectedEngine;
-  if ((e === 'gemini' || e === 'both') && !KEYS.gemini) {
-    warn.textContent = '⚠️ 需要 Gemini API Key';
-  } else if ((e === 'freepik' || e === 'both') && !KEYS.freepik) {
+  if ((e === 'freepik' || e === 'both') && !KEYS.freepik) {
     warn.textContent = '⚠️ 需要 Freepik API Key';
   } else {
     warn.textContent = '';
@@ -397,9 +392,6 @@ async function generateImages() {
   if (!prompt) { toast('請填寫 Prompt', 'error'); return; }
 
   const engine = state.selectedEngine;
-  if ((engine === 'gemini' || engine === 'both') && !KEYS.gemini) {
-    toast('請先設定 Gemini API Key', 'error'); openSettings(); return;
-  }
   if ((engine === 'freepik' || engine === 'both') && !KEYS.freepik) {
     toast('請先設定 Freepik API Key', 'error'); openSettings(); return;
   }
@@ -451,22 +443,19 @@ async function generateGemini(prompt, count, sizeKey) {
   };
   const aspect = aspectMap[sizeKey] || '1:1';
 
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-fast-generate-001:predict?key=${KEYS.gemini}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        instances: [{ prompt }],
-        parameters: {
-          sampleCount: count,
-          aspectRatio: aspect,
-          safetyFilterLevel: 'block_only_high',
-          personGeneration: 'allow_adult',
-        }
-      })
-    }
-  );
+  const res = await fetch(`${WORKER_URL}/imagen`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      instances: [{ prompt }],
+      parameters: {
+        sampleCount: count,
+        aspectRatio: aspect,
+        safetyFilterLevel: 'block_only_high',
+        personGeneration: 'allow_adult',
+      }
+    })
+  });
 
   if (!res.ok) {
     const err = await res.json();

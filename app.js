@@ -239,20 +239,42 @@ async function analyzeStyle() {
   }));
 
   const textPrompt = `
-你是一位專業的品牌設計師和視覺藝術總監。
-請分析以下 ${state.refImages.length} 張參考圖片，為品牌「${brandName}」提取設計語言。
+你是一位擁有 20 年國際品牌設計經驗的視覺藝術總監，曾服務 LG、Samsung、SHISEIDO、CITI BANK 等國際品牌，精通色彩理論、印刷學、字體學、構圖法則、設計史、攝影美學。
+
+請對以下 ${state.refImages.length} 張參考圖進行**極度精準**的設計分析，為品牌「${brandName}」萃取可直接落地的視覺語言。
 目標平台：${platform}。期望調性：${tones}。
 
-請用 JSON 格式回應，結構如下（僅輸出 JSON，不要其他文字）：
+分析要求：
+- 配色必須給出**準確的 HEX**（不只大略色相，要逐像素估算）
+- 字體要點明**字族分類**（Serif/Sans/Slab/Script/Display/Mono）與**情緒氣質**
+- 構圖要套用**設計史術語**（黃金比例、三分法、對稱、不對稱平衡、網格系統、留白哲學）
+- 光影要描述**光源方向、硬度、色溫、陰影特徵**
+- 一定要點明所屬**設計流派**（Swiss/Bauhaus/Memphis/Brutalism/Y2K/Japandi/Wabi-sabi 等）
+
+僅輸出 JSON，**不要其他文字、不要 markdown 標記**。結構如下：
 {
-  "colors": ["#HEX1", "#HEX2", "#HEX3", "#HEX4", "#HEX5"],
-  "styleTags": ["標籤1", "標籤2", "標籤3", "標籤4", "標籤5"],
-  "layout": "版型特徵描述（2–3句）",
-  "typography": "字體與排版建議（2–3句）",
-  "mood": "情緒氛圍描述（1–2句）",
-  "composition": "視覺重點與構圖特徵（1–2句）",
-  "recommendation": "給設計師的具體設計建議（3–5句，中文）",
-  "englishPrompt": "一段 50–80 字的英文 Stable Diffusion / Imagen Prompt，融合品牌調性與參考圖風格"
+  "colors": [
+    {"hex": "#XXXXXX", "role": "Primary/Secondary/Accent/Neutral/Background", "name": "中文色名"}
+  ],
+  "colorHarmony": "色彩和諧模式（Complementary/Analogous/Triadic/Monochromatic/Split-complementary）+ 1 句解釋",
+  "designMovement": "設計流派（例如：Swiss Modernism、Japandi、Y2K Retro-futurism）",
+  "styleTags": ["標籤1", "標籤2", "標籤3", "標籤4", "標籤5", "標籤6"],
+  "typography": {
+    "classification": "字族分類（如 Geometric Sans / Humanist Serif）",
+    "weight": "字重特徵（Thin/Light/Regular/Medium/Bold/Black）",
+    "hierarchy": "資訊層級處理方式（1–2 句）",
+    "pairing": "建議的字體搭配（中英文各 1 種，可舉具體字型）"
+  },
+  "layout": "版型結構（網格系統、欄位數、邊距、區塊比例，2–3 句）",
+  "composition": "構圖法則與焦點分布（術語精準，2–3 句）",
+  "lighting": "光線特徵（方向/硬度/色溫/陰影，1–2 句）",
+  "texture": "材質與表面質感（霧面/光面/紙感/金屬感/顆粒/漸層，1 句）",
+  "negativeSpace": "留白與呼吸感策略（1 句）",
+  "mood": "情緒氛圍（3–5 個形容詞 + 1 句總結）",
+  "visualElements": ["明顯出現的視覺元素（如：圓點、線條、漸層、剪影、幾何圖形、植物、書法筆觸…），列 4–6 項"],
+  "culturalReference": "文化/時代/地域參照（例如：1960s 美式包浩斯、東京銀座精品、北歐 Mid-century）",
+  "recommendation": "給設計師的具體落地建議（5–7 句中文，要實際到能直接執行）",
+  "englishPrompt": "一段 150–250 字的專業英文 Imagen prompt，要包含：[Subject 主體] + [Composition 構圖] + [Lighting 光線] + [Color Palette HEX 色票] + [Typography 字體質感] + [Texture & Material] + [Photography terms 例如 medium format, 85mm lens, shallow DOF] + [Quality modifiers 例如 award-winning, editorial, 8K, ultra-detailed, sharp focus, professional grade]，融合品牌調性與參考圖風格，文字流暢不要條列。"
 }
 `;
 
@@ -264,7 +286,7 @@ async function analyzeStyle() {
         contents: [{
           parts: [...imageParts, { text: textPrompt }]
         }],
-        generationConfig: { temperature: 0.4, maxOutputTokens: 2048 }
+        generationConfig: { temperature: 0.35, maxOutputTokens: 8192 }
       })
     });
 
@@ -298,32 +320,69 @@ async function analyzeStyle() {
 }
 
 function renderAnalysisResults(data) {
-  // Colors
+  // Normalize colors: accept either ["#hex"] or [{hex, role, name}]
+  const colorObjs = (data.colors || []).map(c =>
+    typeof c === 'string' ? { hex: c, role: '', name: '' } : c
+  );
+
+  // Color swatches with role + name
   const colorsEl = document.getElementById('resultColors');
-  colorsEl.innerHTML = (data.colors || []).map(hex => `
-    <div class="swatch" style="background:${hex}" onclick="copyText('${hex}')" title="${hex}">
-      <div class="swatch-tooltip">${hex}</div>
+  colorsEl.innerHTML = colorObjs.map(c => `
+    <div class="swatch" style="background:${c.hex}" onclick="copyText('${c.hex}')" title="${c.hex} ${c.role || ''} ${c.name || ''}">
+      <div class="swatch-tooltip">
+        <strong>${c.hex}</strong>${c.role ? `<br><span style="opacity:.7;font-size:.7rem;">${c.role}${c.name ? ' · ' + c.name : ''}</span>` : ''}
+      </div>
     </div>
   `).join('');
 
   // Color strip
   const strip = document.getElementById('colorStrip');
-  strip.innerHTML = (data.colors || []).map(hex =>
-    `<div class="brand-color-seg" style="background:${hex}" onclick="copyText('${hex}')" title="${hex}"></div>`
+  strip.innerHTML = colorObjs.map(c =>
+    `<div class="brand-color-seg" style="background:${c.hex}" onclick="copyText('${c.hex}')" title="${c.hex} ${c.role || ''}"></div>`
   ).join('');
 
   // Style tags
   document.getElementById('resultStyleTags').innerHTML =
     (data.styleTags || []).map(t => `<div class="style-tag">${t}</div>`).join('');
 
-  // Text fields
-  document.getElementById('resultLayout').textContent       = data.layout       || '—';
-  document.getElementById('resultTypography').textContent   = data.typography   || '—';
-  document.getElementById('resultMood').textContent         = data.mood         || '—';
-  document.getElementById('resultComposition').textContent  = data.composition  || '—';
+  // Typography (object or string)
+  const typo = data.typography;
+  const typoText = typeof typo === 'string'
+    ? typo
+    : typo
+      ? [
+          typo.classification && `<strong>分類：</strong>${typo.classification}`,
+          typo.weight && `<strong>字重：</strong>${typo.weight}`,
+          typo.hierarchy && `<strong>層級：</strong>${typo.hierarchy}`,
+          typo.pairing && `<strong>建議搭配：</strong>${typo.pairing}`,
+        ].filter(Boolean).join('<br>')
+      : '—';
+  document.getElementById('resultTypography').innerHTML = typoText;
+
+  // Standard fields
+  document.getElementById('resultLayout').textContent      = data.layout       || '—';
+  document.getElementById('resultMood').textContent        = data.mood         || '—';
+  document.getElementById('resultComposition').textContent = data.composition  || '—';
+
+  // Extended fields — render into the extra container if it exists
+  const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val || '—'; };
+  setText('resultDesignMovement',    data.designMovement);
+  setText('resultColorHarmony',      data.colorHarmony);
+  setText('resultLighting',          data.lighting);
+  setText('resultTexture',           data.texture);
+  setText('resultNegativeSpace',     data.negativeSpace);
+  setText('resultCulturalReference', data.culturalReference);
+
+  // Visual elements as chips
+  const veEl = document.getElementById('resultVisualElements');
+  if (veEl) {
+    veEl.innerHTML = (data.visualElements || []).map(v => `<div class="style-tag">${v}</div>`).join('') || '—';
+  }
+
+  // Recommendation
   document.getElementById('resultRecommendation').textContent = data.recommendation || '—';
 
-  // Auto-fill prompt
+  // Auto-fill prompt — keep the analysis prompt separate from base so user sees the rich detail
   if (data.englishPrompt) {
     const brandPrompt = buildBasePrompt();
     document.getElementById('mainPrompt').value =
@@ -337,6 +396,7 @@ function skipAnalysis() {
 }
 
 // ── PROMPT BUILDER ────────────────────────────────────
+// Engineered to produce editorial-grade, award-quality output from Imagen 4.
 function buildBasePrompt() {
   const name     = document.getElementById('brandName').value.trim();
   const goal     = document.getElementById('designGoal').value.trim();
@@ -345,15 +405,59 @@ function buildBasePrompt() {
   const colors   = [...document.querySelectorAll('.brand-color-input')]
     .map(i => i.value.trim()).filter(Boolean);
 
-  const parts = [];
-  if (name)     parts.push(`Brand: ${name}`);
-  if (tones.length) parts.push(`Style: ${tones.join(', ')}`);
-  if (colors.length) parts.push(`Brand colors: ${colors.join(', ')}`);
-  if (platform) parts.push(`Platform: ${platform}`);
-  if (goal)     parts.push(`Goal: ${goal}`);
-  parts.push('High quality, professional brand design, commercial photography style');
+  // Platform-specific cinematography hints
+  const platformHint = {
+    'Instagram':         'editorial social-media composition, mobile-first framing, strong focal point',
+    'Facebook':          'engaging social composition, clear focal hierarchy',
+    'LINE':              'clean readable composition optimized for mobile preview',
+    '官網 Hero':         'cinematic hero composition, wide negative space for headline overlay',
+    'Banner 廣告':       'horizontal banner composition with clear product hero and headline-safe negative space',
+    '海報':              'poster-grade composition, strong typographic hierarchy support, print-ready',
+    'EDM':               'editorial newsletter composition, balanced eye-flow from top to bottom',
+    '產品包裝':           'product packaging mockup, premium retail context, studio shelf lighting',
+  }[platform] || 'professional editorial composition';
 
-  return parts.join('. ');
+  // Tone → cinematic descriptors
+  const toneMap = {
+    'Bold 大膽衝擊':   'bold confident energy, high-impact visuals, dramatic contrast',
+    'Minimalist 極簡': 'minimalist Japandi aesthetic, generous negative space, refined restraint',
+    'Energetic 活力':  'kinetic energy, vibrant saturation, dynamic motion lines',
+    'Professional 專業': 'corporate sophistication, polished editorial quality, refined typography',
+    'Luxury 奢華':     'luxury fashion editorial, Hasselblad shot, soft directional studio light, premium materials',
+    'Playful 趣味':    'playful Memphis-inspired energy, bouncy geometry, joyful palette',
+    'Dark 暗黑酷':     'moody chiaroscuro lighting, deep shadows, cinematic noir mood',
+    'Clean 清爽':      'Swiss design clarity, crisp grid system, breathable whitespace',
+    'Retro 復古':      'retro 70s/80s analog grain, nostalgic palette, vintage print quality',
+    'Futuristic 未來感': 'Y2K cyber-futurism, holographic gradients, neo-chrome highlights',
+    'Sporty 運動感':   'athletic dynamic energy, motion blur trails, high-performance gear aesthetic',
+    'Warm 溫暖':       'warm golden hour light, organic textures, hand-crafted artisanal feel',
+  };
+  const tonePhrases = tones.map(t => toneMap[t] || t).filter(Boolean);
+
+  // Build a multi-clause, professionally engineered prompt
+  const segments = [];
+
+  if (goal) {
+    segments.push(`Subject: ${goal}`);
+  }
+  if (name) {
+    segments.push(`Brand identity: ${name}`);
+  }
+  if (tonePhrases.length) {
+    segments.push(`Style direction: ${tonePhrases.join('; ')}`);
+  }
+  if (colors.length) {
+    segments.push(`Brand color palette (must dominate the image): ${colors.join(', ')}`);
+  }
+  segments.push(`Composition: ${platformHint}, rule-of-thirds, strong focal hierarchy, balanced negative space`);
+  segments.push('Lighting: studio-grade directional lighting, soft key with subtle rim light, accurate color temperature, gentle shadow falloff');
+  segments.push('Camera & lens: medium-format Hasselblad H6D-100c equivalent, 80mm prime lens, shallow depth of field, tack-sharp focus on focal subject, creamy bokeh fall-off');
+  segments.push('Material & texture: physically accurate materials, micro-surface detail, photoreal subsurface scattering, no plastic-looking surfaces');
+  segments.push('Color grading: cinematic color science, balanced highlights and shadows, no clipping, true-to-brand HEX values');
+  segments.push('Post-production: subtle film grain, no over-sharpening, no HDR halos, no artefacts, no text artefacts, no warped letterforms');
+  segments.push('Quality: award-winning editorial photography, Communication Arts Annual quality, commercial advertising grade, 8K ultra-detailed, photoreal, sharp focus, professional retouching, magazine-cover finish');
+
+  return segments.join('. ') + '.';
 }
 
 function buildPromptFromBrand() {
@@ -431,9 +535,21 @@ async function generateImages() {
   document.getElementById('generateBtn').disabled = false;
 }
 
-// Gemini Imagen 4
+// Gemini Imagen 4 — Standard / Ultra / Fast
 async function generateGemini(prompt, count, sizeKey) {
-  document.getElementById('genLoadingText').textContent = 'Gemini Imagen 4 生圖中…';
+  const quality = document.getElementById('imageQuality')?.value || 'standard';
+  const qualityRoute = {
+    standard: '/imagen',
+    ultra:    '/imagen-ultra',
+    fast:     '/imagen-fast',
+  }[quality] || '/imagen';
+  const qualityLabel = { standard: 'Standard', ultra: 'Ultra', fast: 'Fast' }[quality];
+
+  // Ultra only supports 1 image at a time — coerce
+  const effectiveCount = quality === 'ultra' ? 1 : count;
+
+  document.getElementById('genLoadingText').textContent =
+    `Imagen 4 ${qualityLabel} 生圖中… (${effectiveCount} 張)`;
 
   const aspectMap = {
     square_1_1:    '1:1',
@@ -443,13 +559,13 @@ async function generateGemini(prompt, count, sizeKey) {
   };
   const aspect = aspectMap[sizeKey] || '1:1';
 
-  const res = await fetch(`${WORKER_URL}/imagen`, {
+  const res = await fetch(`${WORKER_URL}${qualityRoute}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       instances: [{ prompt }],
       parameters: {
-        sampleCount: count,
+        sampleCount: effectiveCount,
         aspectRatio: aspect,
         safetyFilterLevel: 'block_only_high',
         personGeneration: 'allow_adult',
@@ -470,6 +586,7 @@ async function generateGemini(prompt, count, sizeKey) {
       state.generatedImages.push({
         dataUrl: `data:${mime};base64,${b64}`,
         engine: 'gemini',
+        quality,
         prompt,
       });
     }
@@ -695,40 +812,6 @@ function searchFreepik() {
   const terms = [...tags.slice(0,3), brand, industry].filter(Boolean).join(' ');
   const query = encodeURIComponent(terms || 'brand design');
   window.open(`https://www.freepik.com/search?query=${query}&type=vector`, '_blank');
-}
-
-// ── STYLE GUIDE EXPORT ────────────────────────────────
-function exportStyleGuide() {
-  const guide = {
-    brand: {
-      name:     document.getElementById('brandName').value.trim(),
-      slogan:   document.getElementById('brandSlogan').value.trim(),
-      industry: document.getElementById('industry').value,
-      platform: document.getElementById('platform').value,
-      audience: document.getElementById('audience').value.trim(),
-      tones:    getActivePills('toneGroup'),
-      colors:   [...document.querySelectorAll('.brand-color-input')].map(i => i.value.trim()).filter(Boolean),
-      goal:     document.getElementById('designGoal').value.trim(),
-    },
-    analysis: state.analysis,
-    prompt:   document.getElementById('mainPrompt')?.value?.trim(),
-    generatedCount: state.generatedImages.length,
-    exportedAt: new Date().toISOString(),
-  };
-  const blob = new Blob([JSON.stringify(guide, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `${guide.brand.name || 'brand'}-style-guide.json`;
-  a.click();
-  toast('設計規格書已下載', 'success');
-}
-
-function copyBrandColors() {
-  const colors = state.analysis?.colors
-    || [...document.querySelectorAll('.brand-color-input')].map(i => i.value.trim()).filter(Boolean);
-  if (!colors.length) { toast('沒有配色資料', 'error'); return; }
-  copyText(colors.join('\n'));
-  toast('品牌色票已複製', 'success');
 }
 
 function copyPrompt() {

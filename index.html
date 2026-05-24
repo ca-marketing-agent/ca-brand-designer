@@ -726,9 +726,21 @@ textarea{resize:vertical;min-height:110px;line-height:1.7;}
       <div id="analysisResults" style="display:none;margin-top:24px;">
 
         <div class="analysis-section">
-          <div class="analysis-label">🎨 提取配色方案</div>
+          <div class="analysis-label">🎨 提取配色方案（HEX + 角色）</div>
           <div class="color-palette" id="resultColors"></div>
           <div class="brand-color-strip" id="colorStrip" style="margin-top:12px;"></div>
+          <div class="analysis-value" id="resultColorHarmony" style="margin-top:10px;font-size:.85rem;color:var(--muted);"></div>
+        </div>
+
+        <div class="form-grid" style="margin-top:0;">
+          <div class="analysis-section">
+            <div class="analysis-label">🎭 設計流派</div>
+            <div class="analysis-value" id="resultDesignMovement"></div>
+          </div>
+          <div class="analysis-section">
+            <div class="analysis-label">🌏 文化 / 時代參照</div>
+            <div class="analysis-value" id="resultCulturalReference"></div>
+          </div>
         </div>
 
         <div class="analysis-section">
@@ -736,27 +748,44 @@ textarea{resize:vertical;min-height:110px;line-height:1.7;}
           <div class="style-tags" id="resultStyleTags"></div>
         </div>
 
+        <div class="analysis-section">
+          <div class="analysis-label">🧩 視覺元素</div>
+          <div class="style-tags" id="resultVisualElements"></div>
+        </div>
+
         <div class="form-grid" style="margin-top:0;">
           <div class="analysis-section">
-            <div class="analysis-label">📐 版型特徵</div>
+            <div class="analysis-label">📐 版型 / 網格</div>
             <div class="analysis-value" id="resultLayout"></div>
           </div>
           <div class="analysis-section">
-            <div class="analysis-label">✍️ 字體建議</div>
+            <div class="analysis-label">✍️ 字體系統</div>
             <div class="analysis-value" id="resultTypography"></div>
           </div>
           <div class="analysis-section">
-            <div class="analysis-label">💡 情緒氛圍</div>
-            <div class="analysis-value" id="resultMood"></div>
+            <div class="analysis-label">⚡ 構圖法則</div>
+            <div class="analysis-value" id="resultComposition"></div>
           </div>
           <div class="analysis-section">
-            <div class="analysis-label">⚡ 視覺重點</div>
-            <div class="analysis-value" id="resultComposition"></div>
+            <div class="analysis-label">💡 光線特徵</div>
+            <div class="analysis-value" id="resultLighting"></div>
+          </div>
+          <div class="analysis-section">
+            <div class="analysis-label">🧻 材質質感</div>
+            <div class="analysis-value" id="resultTexture"></div>
+          </div>
+          <div class="analysis-section">
+            <div class="analysis-label">🌫️ 留白策略</div>
+            <div class="analysis-value" id="resultNegativeSpace"></div>
+          </div>
+          <div class="analysis-section">
+            <div class="analysis-label">🎬 情緒氛圍</div>
+            <div class="analysis-value" id="resultMood"></div>
           </div>
         </div>
 
         <div class="analysis-section" style="margin-top:4px;">
-          <div class="analysis-label">📝 設計建議</div>
+          <div class="analysis-label">📝 設計師執行建議</div>
           <div class="analysis-value" id="resultRecommendation" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:16px;line-height:1.8;"></div>
         </div>
 
@@ -778,12 +807,20 @@ textarea{resize:vertical;min-height:110px;line-height:1.7;}
             <span style="font-size:1.2rem;">🔵</span>
             <div class="engine-name">Gemini Imagen 4</div>
           </div>
-          <div class="engine-desc">Google 最新 Imagen 4 Fast，高品質商業設計生成，支援中文 Prompt。生圖後可一鍵送到 Magnific 升級畫質。</div>
+          <div class="engine-desc">Google Imagen 4，編輯級商業設計畫質。可選擇 Standard / Ultra 兩檔品質，Ultra 為頂規（單次 1 張）。</div>
           <div class="engine-badge badge-paid">已啟用</div>
         </label>
       </div>
 
       <div class="form-grid">
+        <div class="form-field">
+          <label>畫質等級</label>
+          <select id="imageQuality">
+            <option value="standard" selected>Standard — 標準（推薦，可生成多張）</option>
+            <option value="ultra">Ultra — 頂規畫質（單次 1 張，最高細節）</option>
+            <option value="fast">Fast — 快速（草稿用）</option>
+          </select>
+        </div>
         <div class="form-field">
           <label>圖片尺寸 / 格式</label>
           <select id="imageSize">
@@ -794,7 +831,7 @@ textarea{resize:vertical;min-height:110px;line-height:1.7;}
           </select>
         </div>
         <div class="form-field">
-          <label>生成張數</label>
+          <label>生成張數（Ultra 固定 1 張）</label>
           <select id="imageCount">
             <option value="1">1 張</option>
             <option value="2" selected>2 張</option>
@@ -908,34 +945,6 @@ textarea{resize:vertical;min-height:110px;line-height:1.7;}
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-title">品牌設計規格書</div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;">
-        <button class="btn btn-secondary" onclick="exportStyleGuide()">
-          📄 下載設計規格書（JSON）
-        </button>
-        <button class="btn btn-secondary" onclick="copyBrandColors()">
-          🎨 複製品牌色票 HEX
-        </button>
-        <button class="btn btn-secondary" onclick="copyPrompt()">
-          📋 複製生圖 Prompt
-        </button>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">完整工作流程</div>
-      <div class="info-box" style="margin-bottom:0;">
-        <strong>1. Gemini 生圖（已完成）</strong><br>
-        在 AI 生圖步驟用 Imagen 4 產生初稿<br><br>
-        <strong>2. Magnific 升級畫質</strong><br>
-        圖片下載後 → 開啟 Magnific 網頁版 → 上傳 → 選 Upscale → 4K 輸出<br><br>
-        <strong>3. Canva 完稿</strong><br>
-        將升級後的高解析圖上傳 Canva → 疊加 Logo / 文案 → 匯出最終設計<br><br>
-        <strong>4. Freepik 補素材</strong><br>
-        需要額外圖庫元素（icons、向量）時用 Freepik 搜尋
-      </div>
-    </div>
   </div>
 
 </main>

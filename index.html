@@ -462,6 +462,12 @@ textarea{resize:vertical;min-height:110px;line-height:1.7;}
 }
 .modal-title{font-size:1.35rem;font-weight:900;margin-bottom:8px;color:var(--text-d);}
 .modal-sub{color:var(--muted);font-size:.92rem;margin-bottom:32px;line-height:1.7;}
+.help-section{margin-bottom:24px;padding:16px 18px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);}
+.help-h{font-weight:800;font-size:1rem;color:var(--text-d);margin-bottom:10px;}
+.help-body{font-size:.9rem;line-height:1.75;color:var(--text);}
+.help-body ul{margin:8px 0 0 18px;padding:0;}
+.help-body li{margin-bottom:4px;}
+.help-step{margin-bottom:6px;}
 .api-row{margin-bottom:28px;}
 .api-label{
   display:flex;align-items:center;justify-content:space-between;
@@ -538,7 +544,8 @@ textarea{resize:vertical;min-height:110px;line-height:1.7;}
     CA Brand Designer <span>/ AI 品牌設計</span>
   </div>
   <div class="header-right">
-    <div class="btn-icon" id="settingsBtn" title="API 設定" onclick="openSettings()">⚙️</div>
+    <div class="btn-icon" id="helpBtn" title="使用說明" onclick="openHelp()">❓</div>
+    <div class="btn-icon" id="settingsBtn" title="設定" onclick="openSettings()">⚙️</div>
   </div>
 </header>
 
@@ -1010,6 +1017,67 @@ textarea{resize:vertical;min-height:110px;line-height:1.7;}
     <div style="display:flex;gap:12px;margin-top:24px;">
       <button class="btn btn-primary" onclick="saveSettings()">💾 儲存設定</button>
       <button class="btn btn-secondary" onclick="closeSettings()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── HELP MODAL ── -->
+<div class="modal-overlay" id="helpModal">
+  <div class="modal" style="max-width:720px;">
+    <div class="modal-title">📖 使用說明</div>
+    <div class="modal-sub">CA Brand Designer — AI 品牌設計助手，給 CA 設計團隊內部使用</div>
+
+    <div style="margin-top:8px;">
+
+      <div class="help-section">
+        <div class="help-h">🎯 這個工具能做什麼</div>
+        <div class="help-body">
+          上傳客戶現有的參考圖（或競品 / 風格 mood board），AI 會精準萃取：
+          <ul>
+            <li>配色方案（HEX + 角色標記 Primary/Secondary/Accent…）</li>
+            <li>設計流派（Swiss / Japandi / Y2K / Memphis…）</li>
+            <li>字體系統（字族分類、字重、層級、中英文搭配建議）</li>
+            <li>構圖法則、光線、材質、留白策略、視覺元素、文化參照</li>
+          </ul>
+          自動生成編輯級英文 Prompt → 用 Google Imagen 4 生圖，三檔畫質可選。
+        </div>
+      </div>
+
+      <div class="help-section">
+        <div class="help-h">📋 4 步驟使用流程</div>
+        <div class="help-body">
+          <div class="help-step"><strong>Step 1 — 品牌設定</strong>：填客戶名、產業、平台、調性、品牌色</div>
+          <div class="help-step"><strong>Step 2 — 風格參考</strong>：上傳 1–5 張參考圖 → 按「✨ 開始風格分析」</div>
+          <div class="help-step"><strong>Step 3 — AI 生圖</strong>：選擇畫質 + 尺寸 + 張數 → 按「🪄 開始生圖」</div>
+          <div class="help-step"><strong>Step 4 — 匯出</strong>：點 Magnific 升 4K / Canva 完稿 / Freepik 補素材</div>
+        </div>
+      </div>
+
+      <div class="help-section">
+        <div class="help-h">🎚️ 畫質選擇建議</div>
+        <div class="help-body">
+          <div class="help-step"><strong>Standard</strong>（預設）— 商業案 90% 場景，可一次 2–4 張比稿</div>
+          <div class="help-step"><strong>Ultra</strong> — 主視覺、提案封面、客戶 hero shot（單張頂規畫質）</div>
+          <div class="help-step"><strong>Fast</strong> — 內部快速腦力激盪、草稿用</div>
+        </div>
+      </div>
+
+      <div class="help-section">
+        <div class="help-h">⚠️ 內部注意事項</div>
+        <div class="help-body">
+          <ul>
+            <li>Gemini API 由公司付費版額度提供，請勿濫用刷張數</li>
+            <li>生成圖適合作為「初稿 / 提案視覺」，最終交付仍需 Magnific 升畫質 + Canva 完稿</li>
+            <li>所有設定只存在你的瀏覽器本機，不會同步到其他人</li>
+            <li>有任何 bug 或建議請回報 Mac（Line: mackuo6966）</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="display:flex;gap:12px;margin-top:24px;">
+      <button class="btn btn-primary" onclick="closeHelp()">了解了，開始用 →</button>
     </div>
   </div>
 </div>

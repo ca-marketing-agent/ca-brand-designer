@@ -103,6 +103,28 @@ document.getElementById('settingsModal').addEventListener('click', e => {
   if (e.target === document.getElementById('settingsModal')) closeSettings();
 });
 
+// ── HELP MODAL ────────────────────────────────────────
+function openHelp() {
+  document.getElementById('helpModal').classList.add('open');
+}
+function closeHelp() {
+  document.getElementById('helpModal').classList.remove('open');
+  // Remember the user has seen the help (so first-visit auto-popup doesn't trigger again)
+  try { localStorage.setItem('ca_help_seen', '1'); } catch (_) {}
+}
+const _helpModalEl = document.getElementById('helpModal');
+if (_helpModalEl) {
+  _helpModalEl.addEventListener('click', e => {
+    if (e.target === _helpModalEl) closeHelp();
+  });
+}
+// First-visit: auto-open help once
+try {
+  if (!localStorage.getItem('ca_help_seen')) {
+    setTimeout(openHelp, 600);
+  }
+} catch (_) {}
+
 function loadApiKeyFields() {
   const f = document.getElementById('freepikKey');
   const c = document.getElementById('canvaKey');
